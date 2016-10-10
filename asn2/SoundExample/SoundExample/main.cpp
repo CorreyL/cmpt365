@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 #include <math.h>
 
 using namespace cv;
@@ -154,7 +155,11 @@ int main(int argc, char* argv[])
 	const string filename = "steam.png";
 	image = imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
 
-    int input_character;
+	namedWindow("image", CV_WINDOW_AUTOSIZE);
+	imshow("image", image);
+	waitKey();
+
+	int input_character;
 
     // Retrieve a character, or stop if Ctrl+D is entered (Ctrl+Z in Windows)
     printf("Type a string to play it: ");
