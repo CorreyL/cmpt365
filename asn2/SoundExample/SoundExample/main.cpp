@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     Audio::Open();
 
 	Mat image;
-	const string filename = "steam.png";
+	const string filename = "phone.jpg";
 	image = imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
 
 	namedWindow("image", CV_WINDOW_AUTOSIZE);
