@@ -5,7 +5,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "GetFile.h"
-
+#include "ImageHelper.h"
 #include <list>
 
 #include <stdlib.h>
@@ -25,15 +25,35 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-    Audio::Open();
-
-	Mat image;
+   
+	Mat image_src;
 	const string filename = "phone.jpg";
-	image = imread(filename, CV_LOAD_IMAGE_ANYDEPTH);
-
+	image_src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+	Mat image = ImageHelper::convertImage(image_src);
 	namedWindow("image", CV_WINDOW_AUTOSIZE);
 	imshow("image", image);
+	//iterate through matrix and change the pixel values to 4 bit
+
+	/*for (int row = 0; row < image.rows; row ++) {
+		for (int col = 0; col < image.cols;col++) {
+			///Scalar temp = floor(image.at<uchar>(col, row) *16);
+			image.at<uchar>(col, row) = (floor(image.at<uchar>(col, row) * 16))/16;
+			//*p++;
+		}
+	}*/
+
+	//takes the column of an image
+	Mat mat1col = Mat::zeros(1, 64, CV_32F);
+	image.col(0).copyTo(mat1col);
+	//mat1col = mat1col * 16;
+	namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
+	imshow("mat1col", mat1col);
 	waitKey();
+
+
+	/* Audio::Open();
+	
+
 
 	int input_character;
 
@@ -74,6 +94,6 @@ int main(int argc, char* argv[])
     }
 
     Audio::Close();
-
+	*/
     return EXIT_SUCCESS;
 }

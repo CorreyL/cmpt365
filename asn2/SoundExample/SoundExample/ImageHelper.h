@@ -6,7 +6,7 @@ using namespace cv;
 class ImageHelper
 {
 public:
-	Mat ImageHelper::convertImage(Mat image);
+	static Mat ImageHelper::convertImage(Mat image);
 
 
 };
