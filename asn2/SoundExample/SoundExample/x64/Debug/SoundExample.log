@@ -1,4 +1,0 @@
-﻿  main.cpp
-c:\users\correy\desktop\soundexample\soundexample\main.cpp(114): warning C4267: 'argument': conversion from 'size_t' to 'Uint32', possible loss of data
-  SoundExample.vcxproj -> C:\Users\Correy\Desktop\SoundExample\x64\Debug\SoundExample.exe
-  SoundExample.vcxproj -> C:\Users\Correy\Desktop\SoundExample\x64\Debug\SoundExample.pdb (Full PDB)
