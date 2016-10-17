@@ -1,6 +1,0 @@
-﻿  main.cpp
-  ImageHelper.cpp
-c:\users\maxx sokal\documents\github\cmpt365\asn2\soundexample\soundexample\imagehelper.cpp(21): warning C4244: '=': conversion from 'double' to 'uchar', possible loss of data
-  Generating Code...
-  SoundExample.vcxproj -> C:\Users\Maxx Sokal\Documents\GitHub\cmpt365\asn2\SoundExample\Debug\SoundExample.exe
-  SoundExample.vcxproj -> C:\Users\Maxx Sokal\Documents\GitHub\cmpt365\asn2\SoundExample\Debug\SoundExample.pdb (Full PDB)

@@ -32,25 +32,56 @@ int main(int argc, char* argv[])
 	Mat image = ImageHelper::convertImage(image_src);
 	namedWindow("image", CV_WINDOW_AUTOSIZE);
 	imshow("image", image);
-	//iterate through matrix and change the pixel values to 4 bit
-
-	/*for (int row = 0; row < image.rows; row ++) {
-		for (int col = 0; col < image.cols;col++) {
-			///Scalar temp = floor(image.at<uchar>(col, row) *16);
-			image.at<uchar>(col, row) = (floor(image.at<uchar>(col, row) * 16))/16;
-			//*p++;
-		}
-	}*/
 
 	//takes the column of an image
 	Mat mat1col = Mat::zeros(1, 64, CV_32F);
 	image.col(0).copyTo(mat1col);
-	//mat1col = mat1col * 16;
 	namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
 	imshow("mat1col", mat1col);
+
+	//create an array of frequencies;
+	int Fs = 8000;
+	float freq[64];
+	int i;
+	freq[32] = 440; //centering frequencies around A
+	for (i = 33; i < 64; i++) {
+		freq[i] = freq[i - 1] * pow(2, (1 / 12));
+	}
+	for (i = 31; i > -1; i--) {
+		freq[i] = freq[i + 1] * pow(2, (-1 / 12));
+	}
+
+	//Set the sample rate where 64 columns will take 4s
+	int N = 500;
+	//create array for the sound signals
+	float signal[64];
+	for (i = 0; i < mat1col.rows; i++) {
+		//get highest frequency for top, since it is backwards
+		int tempFreq = 63 - i + 1;
+		float ss = sin(2 *M_PI*freq[i]);
+		signal[i] = mat1col[i] * ss;
+	}
+	Audio::Open();
 	waitKey();
 
+	/*printf("Playing at %f Hz\n", frequency);
 
+	// Allocate a buffer for 0.1 seconds
+	const size_t len = Audio::GetFrequency() / 10;
+	float* buf = new float[len];
+	// Write a sine wave
+	for (size_t i = 0; i < len / 2; i++)
+	{
+		// i * 2 is the frame number (2 samples per frame, one for each channel)
+
+		// Left
+		buf[i * 2 + 0] = sinf(i * 2 * frequency * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
+
+		// Right
+		buf[i * 2 + 1] = sinf(i * 2 * frequency * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
+	} */
+
+	//START OLD CODE
 	/* Audio::Open();
 	
 
