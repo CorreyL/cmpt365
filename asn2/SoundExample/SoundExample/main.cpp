@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	imshow("mat1col", mat1col);
 
 	//create an array of frequencies;
-	int Fs = 8000;
+/*	int Fs = 8000;
 	float freq[64];
 	int i;
 	freq[32] = 440; //centering frequencies around A
@@ -59,9 +59,9 @@ int main(int argc, char* argv[])
 		//get highest frequency for top, since it is backwards
 		int tempFreq = 63 - i + 1;
 		float ss = sin(2 *M_PI*freq[i]);
-		signal[i] = mat1col[i] * ss;
+		signal[i] = mat1col.at<uchar>(1,i) * ss;
 	}
-	Audio::Open();
+	Audio::Open();*/
 	waitKey();
 
 	/*printf("Playing at %f Hz\n", frequency);
