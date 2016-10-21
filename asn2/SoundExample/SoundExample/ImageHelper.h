@@ -7,7 +7,7 @@ class ImageHelper
 {
 public:
 	static Mat ImageHelper::convertImage(Mat image);
-
+	static void ImageHelper::printColumn(Mat image);
 
 };
 

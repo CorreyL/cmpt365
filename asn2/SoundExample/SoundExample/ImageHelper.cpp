@@ -6,8 +6,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 
-using namespace cv;
 
+using namespace cv;
+using namespace std;
 
  Mat ImageHelper::convertImage(Mat image)
 {
@@ -23,3 +24,13 @@ using namespace cv;
 	}
 	return dest;
 }
+
+ void ImageHelper::printColumn(Mat col) {
+	 for (int i = 0; i < col.rows; i++) {
+		 for (int j = 0; j < col.cols; j++) {
+			 uchar val;
+			 val = col.at<uchar>(i, j);
+			 cout << (int)val << endl;
+		 }
+	 }
+ }

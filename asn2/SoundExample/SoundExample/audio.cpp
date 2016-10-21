@@ -29,12 +29,12 @@ void Audio::Open()
 	Mix_Init(0);
 
 	int rc = Mix_OpenAudio(
-		GetFrequency(), // Frequency
+		44100, // Frequency
 		AUDIO_F32,      // Format. Note: several formats are not portable.
-		2,              // Channels
+		1,              // Channels , nothing to do with audio channels
 		1024);          // Chunk size. Should not be too small.
 	if (rc == -1) FAIL("Could not open audio.");
-
+	
 	int frequency;
 	Uint16 format;
 	int channels;
