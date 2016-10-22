@@ -4,6 +4,7 @@
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui.hpp"
+#include "opencv2/opencv.hpp"
 #include "GetFile.h"
 #include "ImageHelper.h"
 #include <list>
@@ -25,7 +26,45 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
-   
+	char videoFilename[1024];
+	GetFile(videoFilename, 1024);
+	if (videoFilename[0] == '\0')
+	{
+		fprintf(stderr, "Please select a file\n");
+		return EXIT_FAILURE;
+	}
+
+	VideoCapture vc = VideoCapture(videoFilename);
+
+	Mat frame;
+	Mat gray;
+	
+	while (true)
+	{
+		// Get the image from the video file
+		vc.read(frame);
+
+		// Stop if there are no more frames in the video
+		if (frame.empty()) break;
+
+		cvtColor(frame, gray, CV_BGR2GRAY);
+
+		gray = ImageHelper::convertImage(gray);
+
+		// Display the image 
+		imshow("Display", gray);
+
+		// Sleep for 30 milliseconds. Note: This function is the only method in 
+		// HighGUI that can fetch and handle events,  so it needs to be called 
+		// periodically for normal event processing unless HighGUI is used within 
+		// an environment that takes care of event processing.
+		int c = waitKey(30);
+
+		// Quit if any key is pressed
+		if (c != -1) break;
+	}
+
+	/*
 	Mat image_src;
 	const string filename = "phone.jpg";
 	image_src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
@@ -40,6 +79,7 @@ int main(int argc, char* argv[])
 	image.col(0).copyTo(mat1col);
 	// namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
 	// imshow("mat1col", mat1col);
+	*/
 
 	//create an array of frequencies;
 /*	int Fs = 8000;
