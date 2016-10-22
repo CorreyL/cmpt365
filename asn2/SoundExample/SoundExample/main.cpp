@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 	//takes the column of an image
 	Mat mat1col = Mat::zeros(1, 64, CV_32F);
 	cout << "Printing image.col(0)" << endl;
-	ImageHelper::printColumn(image.col(0));
+	ImageHelper::printColumn(image.col(32));
 	image.col(0).copyTo(mat1col);
 	namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
 	imshow("mat1col", mat1col);
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 		signal[i] = mat1col.at<uchar>(1,i) * ss;
 	}
 	;*/
-	waitKey();
+	
 	Audio::Open();
 	int N = 500;
 	//int samplingFreq = 8000; //sampling freq is also set in Audio::GetFrequency
@@ -86,18 +86,22 @@ int main(int argc, char* argv[])
 	//Write the sine wav
 
 	// m * 64 is the frame number (64 samples per frame, one for each channel)
-	for (size_t m = 0; i < len / 64; m++) { //64 samples per frame, one for each channel
+	for (size_t m = 0; m < len / 2 ; m++) { //64 samples per frame, one for each channel
 		for (int n = 0; n < 64; n++) {
-			buf[m * 64 + n] = sinf(m * 2 * freq[n] * M_PI  / Audio::GetFrequency()) * 0.5f; //not sure what 0.5f does
-			//buf[m * 64 + n + 1] = sinf(m * 2 * freq[n] * M_PI / Audio::GetFrequency()) * 0.5f; //not sure what 0.5f does
-
+			// Left
+			buf[m * 2 + 0] = sinf(m * 2 * freq[n] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f; // not sure what 0.5f does
+			
+			// Right
+			buf[m * 2 + 1] = sinf(m * 2 * freq[n] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
 		}
+		Audio::Play(buf, len);
+		Audio::WaitForSilence();
 	}
 	// Play the sound
-	Audio::Play(buf, len);
-	printf("Just played the chord");
+	// Audio::Play(buf, len);
+	// printf("Just played the chord");
 	// Wait for it to stop playing
-	Audio::WaitForSilence();
+	// Audio::WaitForSilence();
 	Audio::Close();
 	waitKey();
 	return EXIT_SUCCESS;
