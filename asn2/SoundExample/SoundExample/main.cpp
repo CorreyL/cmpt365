@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
 	cout << "Printing image.col(0)" << endl;
 	ImageHelper::printColumn(image.col(32));
 	image.col(0).copyTo(mat1col);
-	namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
-	imshow("mat1col", mat1col);
+	// namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
+	// imshow("mat1col", mat1col);
 
 	//create an array of frequencies;
 /*	int Fs = 8000;
@@ -82,17 +82,35 @@ int main(int argc, char* argv[])
 
 	//assign ea. note to a channel in the audio. Recall that if the pixel value is black, the note will not play
 	const size_t len = Audio::GetFrequency() / N; // each chord plays 0.0625 s
-	float * buf = new float[len]; 
-	//Write the sine wav
+	float * buf = new float[len];
 
-	// m * 64 is the frame number (64 samples per frame, one for each channel)
-	for (size_t m = 0; m < len / 2 ; m++) { //64 samples per frame, one for each channel
-		for (int n = 0; n < 64; n++) {
-			// Left
-			buf[m * 2 + 0] = sinf(m * 2 * freq[n] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f; // not sure what 0.5f does
-			
-			// Right
-			buf[m * 2 + 1] = sinf(m * 2 * freq[n] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
+	// Building tt like it does in the MATLAB sample code
+	// tt = (1:N) initializes an array with the values from 1 to N, where tt[0] = 1, tt[1] = 2, ... tt[N-1] = N
+	// tt = (1:N)/Fs divides every entry by Fs; Since Fs = 8000, tt[0] = 1/8000, tt[1] = 2/8000, ... tt[N-1] = N/8000
+	float * tt = new float[N];
+	for (int j = 0; j < N; j++) {
+		tt[j] = j + 1 / 8000;
+	}
+	// This is currently unused.
+
+	//Write the sine wav
+	for (size_t m = 0; m < len / 2 ; m++) {
+		for (int col = 0; col < 64; col++) { // Column
+			for (int row = 0; row < 64; row++) { // Row
+				// Left
+				buf[m * 2 + 0] = /* image.at<uchar>(row, col) * */ (sinf(m * 2 * freq[col] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f);
+
+				// Right
+				buf[m * 2 + 1] = /* image.at<uchar>(row, col) * */ (sinf(m * 2 * freq[col] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f);
+
+				// I want to multiply both of these by image.at<uchar>(row, col), since in the MATLAB code
+				// ss = sin(2*pi*freq(m)*tt)
+				// signal = signal + im(row, col) * ss;
+				// In our case, im(row, col) should be image.at<uchar>(row, col)
+				//
+				// However, if you try to cout << image.at<uchar>(0, 0) << endl
+				// The output is a strange symbol, not the numbers they should be
+			}
 		}
 		Audio::Play(buf, len);
 		Audio::WaitForSilence();
