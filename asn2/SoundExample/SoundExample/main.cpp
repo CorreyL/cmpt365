@@ -35,9 +35,10 @@ int main(int argc, char* argv[])
 
 	//takes the column of an image
 	Mat mat1col = Mat::zeros(1, 64, CV_32F);
+	cout << "Printing image.col(0)" << endl;
+	ImageHelper::printColumn(image.col(0));
 	image.col(0).copyTo(mat1col);
 	namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
-	ImageHelper::printColumn(mat1col);
 	imshow("mat1col", mat1col);
 
 	//create an array of frequencies;
