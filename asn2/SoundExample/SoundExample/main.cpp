@@ -51,8 +51,57 @@ int main(int argc, char* argv[])
 
 		gray = ImageHelper::convertImage(gray);
 
-		// Display the image 
-		imshow("Display", gray);
+		Audio::Open();
+		int N = 500;
+		//int samplingFreq = 8000; //sampling freq is also set in Audio::GetFrequency
+
+		//create frequency array for each pixel
+		double freq[64];
+		freq[32] = 440.0; //centering around middle A
+		int i;
+		for (i = 33; i < 64; i++) {
+			freq[i] = freq[i - 1] * pow(2, (1.0 / 12.0));
+		}
+		for (i = 31; i > -1; i--) {
+			freq[i] = freq[i + 1] * pow(2, (-1.0 / 12));
+		}
+
+		//assign ea. note to a channel in the audio. Recall that if the pixel value is black, the note will not 
+		const size_t len = Audio::GetFrequency() / 16; // each chord plays 0.0625 s
+		float * buf = new float[len];
+
+		// Building tt like it does in the MATLAB sample code
+		// tt = (1:N) initializes an array with the values from 1 to N, where tt[0] = 1, tt[1] = 2, ... tt[N-1] = N
+		// tt = (1:N)/Fs divides every entry by Fs; Since Fs = 8000, tt[0] = 1/8000, tt[1] = 2/8000, ... tt[N-1] = N/8000
+		float * tt = new float[N];
+		for (int j = 0; j < N; j++) {
+			tt[j] = (j + 1) / 8000;
+		}
+
+		//Write the sine wav
+		for (int col = 0; col < 64; col++) { // Column
+			memset(buf, 0, sizeof(buf));
+			for (int row = 0; row < 64; row++) { // Row
+				int freqAcc = 63 - row;
+				for (int m = 0; m < len / 2; m++) {
+					// Left
+					buf[m * 2 + 0] = (float)gray.at<uchar>(row, col) * (sinf(2 * float(M_PI) * freq[freqAcc] / Audio::GetFrequency()));
+
+					// Right
+					buf[m * 2 + 1] = (float)gray.at<uchar>(row, col) * (sinf(2 * float(M_PI) * freq[freqAcc] / Audio::GetFrequency()));
+
+					// I want to multiply both of these by image.at<uchar>(row, col), since in the MATLAB code
+					// ss = sin(2*pi*freq(m)*tt)
+					// signal = signal + im(row, col) * ss;
+					// In our case, im(row, col) should be image.at<uchar>(row, col)
+					//
+					// However, if you try to cout << image.at<uchar>(0, 0) << endl
+					// The output is a strange symbol, not the numbers they should be
+				}
+			}
+			Audio::Play(buf, len);
+			Audio::WaitForSilence();
+		}
 
 		// Sleep for 30 milliseconds. Note: This function is the only method in 
 		// HighGUI that can fetch and handle events,  so it needs to be called 
@@ -63,8 +112,7 @@ int main(int argc, char* argv[])
 		// Quit if any key is pressed
 		if (c != -1) break;
 	}
-
-	/*
+	
 	Mat image_src;
 	const string filename = "phone.jpg";
 	image_src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
@@ -79,7 +127,7 @@ int main(int argc, char* argv[])
 	image.col(0).copyTo(mat1col);
 	// namedWindow("mat1col", CV_WINDOW_AUTOSIZE);
 	// imshow("mat1col", mat1col);
-	*/
+	
 
 	//create an array of frequencies;
 /*	int Fs = 8000;
@@ -104,64 +152,7 @@ int main(int argc, char* argv[])
 		signal[i] = mat1col.at<uchar>(1,i) * ss;
 	}
 	;*/
-	
-	Audio::Open();
-	int N = 500;
-	//int samplingFreq = 8000; //sampling freq is also set in Audio::GetFrequency
-
-	//create frequency array for each pixel
-	double freq[64];
-	freq[32] = 440.0; //centering around middle A
-	int i;
-	for (i = 33; i < 64; i++) {
-		freq[i] = freq[i - 1] * pow(2, (1.0 / 12.0));
-	}
-	for (i = 31; i > -1; i--) {
-		freq[i] = freq[i + 1] * pow(2, (-1.0 / 12));
-	}
-
-	//assign ea. note to a channel in the audio. Recall that if the pixel value is black, the note will not play
-	const size_t len = Audio::GetFrequency() / N; // each chord plays 0.0625 s
-	float * buf = new float[len];
-
-	// Building tt like it does in the MATLAB sample code
-	// tt = (1:N) initializes an array with the values from 1 to N, where tt[0] = 1, tt[1] = 2, ... tt[N-1] = N
-	// tt = (1:N)/Fs divides every entry by Fs; Since Fs = 8000, tt[0] = 1/8000, tt[1] = 2/8000, ... tt[N-1] = N/8000
-	float * tt = new float[N];
-	for (int j = 0; j < N; j++) {
-		tt[j] = j + 1 / 8000;
-	}
-	// This is currently unused.
-
-	//Write the sine wav
-	for (size_t m = 0; m < len / 2 ; m++) {
-		for (int col = 0; col < 64; col++) { // Column
-			for (int row = 0; row < 64; row++) { // Row
-				// Left
-				buf[m * 2 + 0] = /* image.at<uchar>(row, col) * */ (sinf(m * 2 * freq[col] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f);
-
-				// Right
-				buf[m * 2 + 1] = /* image.at<uchar>(row, col) * */ (sinf(m * 2 * freq[col] * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f);
-
-				// I want to multiply both of these by image.at<uchar>(row, col), since in the MATLAB code
-				// ss = sin(2*pi*freq(m)*tt)
-				// signal = signal + im(row, col) * ss;
-				// In our case, im(row, col) should be image.at<uchar>(row, col)
-				//
-				// However, if you try to cout << image.at<uchar>(0, 0) << endl
-				// The output is a strange symbol, not the numbers they should be
-			}
-		}
-		Audio::Play(buf, len);
-		Audio::WaitForSilence();
-	}
-	// Play the sound
-	// Audio::Play(buf, len);
-	// printf("Just played the chord");
-	// Wait for it to stop playing
-	// Audio::WaitForSilence();
 	Audio::Close();
-	waitKey();
 	return EXIT_SUCCESS;
 }
 
