@@ -26,18 +26,17 @@ public:
 	//      channel two
 	static void Play(const float * buf, size_t len);
 
+	static void PlayAll(const float * const* buf, size_t len);
+
 	// Sleeps until there is no more audio playing
 	static void WaitForSilence();
 
 	// Returns the frequency to use for playing samples
 	static int GetFrequency()
 	{
-		return 44100; //was 44100
+		return 44100; 
 	}
 
-	static int GetChannels() { //added by Maxx
-		return 1; //for number of channels needed to play chord
-	}
 private:
 
 	// A list which keeps track of which chunks have been played, and which channel they

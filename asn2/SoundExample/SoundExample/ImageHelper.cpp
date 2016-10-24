@@ -5,7 +5,11 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
-
+#include "GetFile.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -34,4 +38,15 @@ using namespace std;
 			 cout << (int)val << endl;
 		 }
 	 }
+ }
+
+ VideoCapture ImageHelper::getVideo() {
+	 char videoFilename[1024];
+	 GetFile(videoFilename, 1024);
+	 if (videoFilename[0] == '\0')
+	 {
+		 fprintf(stderr, "Please select a file\n");
+		 return EXIT_FAILURE;
+	 }
+	return VideoCapture(videoFilename);
  }

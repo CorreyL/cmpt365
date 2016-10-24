@@ -31,8 +31,8 @@ void Audio::Open()
 	int rc = Mix_OpenAudio(
 		44100, // Frequency
 		AUDIO_F32,      // Format. Note: several formats are not portable.
-		1,              // Channels , nothing to do with audio channels
-		1024);          // Chunk size. Should not be too small.
+		2,              // Channels , nothing to do with audio channels
+		4096);          // Chunk size. Should not be too small.
 	if (rc == -1) FAIL("Could not open audio.");
 	
 	int frequency;
@@ -99,6 +99,60 @@ void Audio::Play(const float * buf, size_t len)
 		// chunks we played
 		chunks_played.push_back(std::pair<Mix_Chunk*, int>(chunk, rc));
 	}
+}
+///////////////////////////////////////////////////////////////////////////////
+void Audio::PlayAll(const float * const* buf, size_t len)
+{
+	Mix_Chunk* chunkArr[64];
+	// Delete any chunks that are no longer playing
+	Audio::ChunkList::iterator chunk_i = chunks_played.begin();
+	while (chunk_i != chunks_played.end())
+	{
+		// Test the channel on which we played the original chunk
+		// to see if it is still playing the same chunk
+		if (Mix_GetChunk((*chunk_i).second) != (*chunk_i).first)
+		{
+			// If the channel was not playing the same chunk, then the
+			// chunk is not being played, so delete it
+			Mix_FreeChunk(chunk_i->first);
+			chunks_played.erase(chunk_i++);
+		}
+		else
+		{
+			chunk_i++;
+		}
+	}
+	if (Mix_GroupChannels(0, 63, 1) != 64) { //tried to group channels, then TRIED to look for method to play the group
+		printf("ERROR BAD CHANNELS");
+	}
+	int temp;
+	for ( temp = 0; temp < 63; temp++) { //make chunk for every pixel
+		float* bufcpy = (float*)SDL_malloc(sizeof(*bufcpy) * len);
+		memcpy(bufcpy, buf[temp], len * sizeof(*buf));
+		// Create a chunk from the data
+		Mix_Chunk *chunk = Mix_QuickLoad_RAW((Uint8*)bufcpy, len * sizeof(*buf));
+		
+		// Set chunk->allocated to non-zero to cause SDL to call
+		// SQL_free on the chunk's data buffer when Mix_FreeChunk is called
+		chunk->allocated = true;
+		chunkArr[temp] = chunk;
+	}
+	// Play the chunk
+	//for (temp = 0; temp < 63; temp++) { //to iterate over all pixels
+		Mix_Chunk* tChunk = chunkArr[0]; //0 was temp
+		int rc = Mix_PlayChannel(0, tChunk, 0);
+		if (rc == -1)
+		{
+			FAIL("Could not play chunk.");
+		}
+		else
+		{
+			// Add the chunk and the channel it was played on to the list of
+			// chunks we played
+			chunks_played.push_back(std::pair<Mix_Chunk*, int>(tChunk, rc));
+		}
+	//}
+
 }
 ///////////////////////////////////////////////////////////////////////////////
 void Audio::WaitForSilence()
