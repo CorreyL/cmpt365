@@ -26,6 +26,7 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
+<<<<<<< HEAD
 
 	//VideoCapture vc = ImageHelper::getVideo();
 
@@ -117,4 +118,80 @@ int main(int argc, char* argv[])
 	Audio::Close();
 	return EXIT_SUCCESS;
 }
+
+/*
+#include <SDL.h>
+#include <SDL_thread.h>
+#include <SDL_mixer.h>
+
+#include <list>
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <math.h>
+#include "audio.h"
+
+// Prints a message and exits with EXIT_FAILURE.
+#define FAIL(...) { fprintf(stderr, __VA_ARGS__); exit(EXIT_FAILURE); }
+
+
+int main(int argc, char* argv[])
+{
+	float freq[64];
+	freq[31] = 440.0f; //centering around middle A
+	int i;
+	for (i = 32; i < 64; ++i) {
+		freq[i] = (freq[i - 1] * pow(2, (1.0 / 12.0)));
+	}
+	for (i = 30; i > -1; --i) {
+		freq[i] = (freq[i + 1] * pow(2, (-1.0 / 12.0)));
+	}
+	Audio::Open();
+
+	int input_character;
+
+	// Retrieve a character, or stop if Ctrl+D is entered (Ctrl+Z in Windows)
+	printf("Type a string to play it: ");
+	int sure = 10;
+	while ((input_character = getchar()) != EOF)
+	{
+		if (input_character == '\n')
+		{
+			printf("Type a string to play it: ");
+			continue;
+		}
+
+		// Use the character to create a frequency.
+		//float frequency = input_character * 10 + 200.0f;
+		float frequency = freq[sure];// *10 + 200.0f;
+		printf("Playing at %f Hz\n", frequency);
+		printf("input char is %i", (int)input_character);
+		// Allocate a buffer for 0.1 seconds
+		const size_t len = 44100 / 10;//Audio::GetFrequency() / 10;
+		float buf[len];
+
+		// Write a sine wave
+		for (size_t i = 0; i < len / 2; i++)
+		{
+			// i * 2 is the frame number (2 samples per frame, one for each channel)
+
+			// Left
+			buf[i * 2 + 0] = sinf(i * 2 * frequency * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
+
+			// Right
+			buf[i * 2 + 1] = sinf(i * 2 * frequency * 2 * float(M_PI) / Audio::GetFrequency()) * 0.5f;
+		}
+		sure = sure + 3;
+		// Play the sound
+		Audio::Play(buf, len);
+
+		// Wait for it to stop playing
+		Audio::WaitForSilence();
+	}
+
+	Audio::Close();
+
+	return EXIT_SUCCESS;
+}*/
 
