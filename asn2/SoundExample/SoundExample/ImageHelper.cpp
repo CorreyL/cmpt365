@@ -16,11 +16,11 @@ using namespace std;
 	cv::Size size(64, 64);
 	Mat dest;
 	//Mat resizedImage(size);
-	cv::resize(image,dest, size, 0, 0);
+	cv::resize(image, dest, size, 0, 0);
 	//convert each pixel to 4 bit values
 	for (int row = 0; row < dest.rows; row++) {
 		for (int col = 0; col < dest.cols; col++) {
-			dest.at<uchar>(col, row) = (floor(dest.at<uchar>(col, row) * 16)) / 16;
+			dest.at<uchar>(col, row) = ((floor(dest.at<uchar>(col, row)))/16);
 		}
 	}
 	return dest;
