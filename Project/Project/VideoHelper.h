@@ -2,11 +2,14 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/opencv.hpp"
 
+#include <string>
+
 using namespace cv;
 class VideoHelper
 {
 public:
-	double frameCount(CvCapture* capture);
+	static double getFrameCount(CvCapture* capture);
+	static void playVideo(std::string videoName, int size);
 };
 
 #pragma once
