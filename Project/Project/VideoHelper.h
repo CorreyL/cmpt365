@@ -6,7 +6,7 @@ using namespace cv;
 class VideoHelper
 {
 public:
-
+	double frameCount(CvCapture* capture);
 };
 
 #pragma once
