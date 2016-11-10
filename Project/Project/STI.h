@@ -13,11 +13,12 @@ class STI
 public:
 	STI(int cols, int rows); //constructor
 	~STI(); //destructor
-	void setStiColMatrix(std::string videoName, int size );
+	void setStiMatrix(std::string videoName, int size );
 	std::string type2str(int type);
 	void showColImage(int enlarge);
 	void showRowImage(int enlarge);
 	void createFrameHistogram(Mat image);
+	int chromNormalization(float chrom);
 
 private: 
 	Mat stiColMat;

@@ -29,7 +29,7 @@ STI::~STI()
 
 }
 
-void STI::setStiColMatrix(string videoName, int size)
+void STI::setStiMatrix(string videoName, int size)
 //sets the number of columns according to frame count
 {
 	int enlarge = 5;
@@ -75,6 +75,33 @@ void STI::showColImage(int enlarge)
 	imshow("StiColMatrix", M);
 }
 
+int STI::chromNormalization(float chrom) {
+	if(chrom >= 0 && chrom < 0.144){
+		return 0;
+	}
+	else if (chrom >= 0.144 && chrom < 0.288) {
+		return 1;
+	}
+	else if (chrom >= 0.288 && chrom < 0.432) {
+		return 2;
+	}
+	else if (chrom >= 0.432 && chrom < 0.576) {
+		return 3;
+	}
+	else if (chrom >= 0.576 && chrom < 0.720) {
+		return 4;
+	}
+	else if (chrom >= 0.720 && chrom < 0.864) {
+		return 5;
+	}
+	else if (chrom >= 0.864 && chrom < 1.000) {
+		return 6;
+	}
+	else {
+		throw runtime_error("An invalid value was passed in. Should be between 0 and 1.");
+	}
+}
+
 void STI::createFrameHistogram(Mat image) {
 	Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
 	 
@@ -89,9 +116,13 @@ void STI::createFrameHistogram(Mat image) {
 			int b = (int)intensity.val[1];
 			int g = (int)intensity.val[0];
 
-			int rchrom = (r / (r + b + g));
-			int bchrom = (b / (r + b + g));
+			float rchrom = (r / (r + b + g));
+			float gchrom = (g / (r + b + g));
 		}
+		int rHist = chromNormalization(rchrom);
+		int gHist = chromNormalization(gchrom);
+		
+		// hist[rHist][gHist] = hist[rHist][gHist] + 1; // Not sure if I can access a Mat array like this?
 	}
 }
 
