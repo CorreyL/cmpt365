@@ -52,7 +52,6 @@ void STI::setStiColMatrix(string videoName, int size)
 			//resize video to size x size
 			Mat resized;
 			resize(frame, resized, Size(size, size));
-			
 			resized.col(centerCol).copyTo(stiColMat.col(currentFrame));	
 			resized.row(centerRow).copyTo(stiRowMat.row(currentFrame));
 			currentFrame++;
@@ -64,6 +63,8 @@ void STI::setStiColMatrix(string videoName, int size)
 	cap.release();
 	showColImage(enlarge);
 	showRowImage(enlarge);
+
+	createFrameHistogram(stiColMat);
 }
 
 void STI::showColImage(int enlarge)
@@ -72,7 +73,26 @@ void STI::showColImage(int enlarge)
 	resize(stiColMat, M, Size(numFrames * enlarge, videoRes * enlarge));
 	namedWindow("StiColMatrix", WINDOW_AUTOSIZE);
 	imshow("StiColMatrix", M);
+}
 
+void STI::createFrameHistogram(Mat image) {
+	Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
+	 
+	if (DEBUG)
+		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
+	for (int i = 0; i < image.rows; i++) { //make sure that this is correct
+		for (int j = 0; j < image.cols; j++) {
+			//default returned is BGR
+			Vec3b intensity = image.at<cv::Vec3b>(i,j);
+			//get R,G,B values from image
+			int r = (int)intensity.val[2];
+			int b = (int)intensity.val[1];
+			int g = (int)intensity.val[0];
+
+			int rchrom = (r / (r + b + g));
+			int bchrom = (b / (r + b + g));
+		}
+	}
 }
 
 void STI::showRowImage(int enlarge)
@@ -81,17 +101,6 @@ void STI::showRowImage(int enlarge)
 	resize(stiRowMat, M, Size(numFrames * enlarge, videoRes * enlarge));
 	namedWindow("StiRowMatrix", WINDOW_AUTOSIZE);
 	imshow("StiRowMatrix", M);
-}
-
-
-void STI::printColMatrix()
-{
-	//cout << "STI  Col Matrix: (rows: " << videoRes << ") x (cols: " << numFrames <<")" << endl << stiColMat << endl << endl;
-}
-
-void STI::printRowMatrix()
-{
-	//cout << "STI Row Matrix: (rows: " << numFrames << ") x (cols: " << videoRes << ")" << endl << stiRowMat << endl << endl;
 }
 
 string STI::type2str(int type) {
