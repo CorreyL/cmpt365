@@ -104,7 +104,8 @@ int STI::chromNormalization(float chrom) {
 
 void STI::createFrameHistogram(Mat image) {
 	Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
-	 
+	float rchrom;
+	float gchrom;
 	if (DEBUG)
 		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
 	for (int i = 0; i < image.rows; i++) { //make sure that this is correct
@@ -116,8 +117,8 @@ void STI::createFrameHistogram(Mat image) {
 			int b = (int)intensity.val[1];
 			int g = (int)intensity.val[0];
 
-			float rchrom = (r / (r + b + g));
-			float gchrom = (g / (r + b + g));
+			rchrom = (r / (r + b + g));
+			gchrom = (g / (r + b + g));
 		}
 		int rHist = chromNormalization(rchrom);
 		int gHist = chromNormalization(gchrom);
