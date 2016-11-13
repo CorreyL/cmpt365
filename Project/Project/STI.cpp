@@ -75,7 +75,7 @@ void STI::showColImage(int enlarge)
 	imshow("StiColMatrix", M);
 }
 
-int STI::chromNormalization(float chrom) {
+int STI::chromNormalization(double chrom) {
 	if(chrom >= 0 && chrom < 0.144){
 		return 0;
 	}
@@ -103,9 +103,10 @@ int STI::chromNormalization(float chrom) {
 }
 
 void STI::createFrameHistogram(Mat image) {
-	Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
-	float rchrom;
-	float gchrom;
+	// Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
+	int hist[7][7] = {0};
+	double rchrom = 0;
+	double gchrom = 0;
 	if (DEBUG)
 		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
 	for (int i = 0; i < image.rows; i++) { //make sure that this is correct
@@ -113,17 +114,26 @@ void STI::createFrameHistogram(Mat image) {
 			//default returned is BGR
 			Vec3b intensity = image.at<cv::Vec3b>(i,j);
 			//get R,G,B values from image
-			int r = (int)intensity.val[2];
-			int b = (int)intensity.val[1];
-			int g = (int)intensity.val[0];
-
+			double r = (double)intensity.val[2];
+			double b = (double)intensity.val[1];
+			double g = (double)intensity.val[0];
+	
+			
 			rchrom = (r / (r + b + g));
 			gchrom = (g / (r + b + g));
+
+			int rHist = chromNormalization(rchrom);
+			int gHist = chromNormalization(gchrom);
+
+			hist[rHist][gHist] = hist[rHist][gHist] + 1;
 		}
-		int rHist = chromNormalization(rchrom);
-		int gHist = chromNormalization(gchrom);
-		
-		// hist[rHist][gHist] = hist[rHist][gHist] + 1; // Not sure if I can access a Mat array like this?
+	}
+	// Prints out the histogram
+	for (int l = 0; l < 7; l++) {
+		for (int m = 0; m < 7; m++) {
+			cout << hist[l][m] << " ";
+		}
+		cout << endl;
 	}
 }
 
