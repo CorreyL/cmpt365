@@ -103,14 +103,16 @@ int STI::chromNormalization(double chrom) {
 }
 
 void STI::createFrameHistogram(Mat image) {
-	// Mat hist = Mat(7, 7, CV_32F, double(0)); //create empty histogram 7x7
-	int hist[7][7] = {0};
+	Mat hist = Mat(7, 7, CV_64F, double(0)); //create empty histogram 7x7
+	//int hist[7][7] = {0};
 	double rchrom = 0;
 	double gchrom = 0;
+	int i, j;
+	//int runningSum = 0;
 	if (DEBUG)
 		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
-	for (int i = 0; i < image.rows; i++) { //make sure that this is correct
-		for (int j = 0; j < image.cols; j++) {
+	for (i = 0; i < image.rows; i++) { //make sure that this is correct
+		for (j = 0; j < image.cols; j++) {
 			//default returned is BGR
 			Vec3b intensity = image.at<cv::Vec3b>(i,j);
 			//get R,G,B values from image
@@ -118,23 +120,44 @@ void STI::createFrameHistogram(Mat image) {
 			double b = (double)intensity.val[1];
 			double g = (double)intensity.val[0];
 	
-			
 			rchrom = (r / (r + b + g));
 			gchrom = (g / (r + b + g));
 
 			int rHist = chromNormalization(rchrom);
 			int gHist = chromNormalization(gchrom);
 
-			hist[rHist][gHist] = hist[rHist][gHist] + 1;
+			//hist[rHist][gHist] = hist[rHist][gHist] + 1;
+			hist.at<double>(rHist, gHist) = hist.at<double>(rHist, gHist) + 1;
 		}
 	}
 	// Prints out the histogram
-	for (int l = 0; l < 7; l++) {
-		for (int m = 0; m < 7; m++) {
-			cout << hist[l][m] << " ";
+	
+	cout << "Histogram: " << endl;
+	//cout << "Running sum = " << runningSum;
+	for (i = 0; i < hist.rows; i++) {
+		for (j = 0; j < hist.cols; j++) {
+			cout << hist.at<double>(i, j) << "   ";
 		}
 		cout << endl;
 	}
+
+	//Normalize hist
+	double pixelSum = 1.0f / (image.rows * image.cols);
+	cout << "PixelSum = " << pixelSum << endl;
+	Mat normalizedHist = pixelSum * hist;
+	
+	cout << "Histogram Normalized: " << endl;
+	//cout << "Running sum = " << runningSum;
+	for (i = 0; i < hist.rows; i++) {
+		for (j = 0; j < hist.cols; j++) {
+			cout << normalizedHist.at<double>(i, j) << "   ";
+		}
+		cout << endl;
+	}
+}
+
+void STI::histogramIntersect(Mat previous, Mat current) {
+
 }
 
 void STI::showRowImage(int enlarge)
@@ -171,3 +194,4 @@ string STI::type2str(int type) {
 
 	return r;
 }
+

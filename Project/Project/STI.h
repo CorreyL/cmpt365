@@ -18,7 +18,8 @@ public:
 	void showColImage(int enlarge);
 	void showRowImage(int enlarge);
 	void createFrameHistogram(Mat image);
-	int chromNormalization(float chrom);
+	int chromNormalization(double chrom);
+	void histogramIntersect(Mat previous, Mat current);
 
 private: 
 	Mat stiColMat;

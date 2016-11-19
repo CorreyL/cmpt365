@@ -30,7 +30,7 @@ int main(int argc, char** argv)
 	//create new sti
 	STI* sti = new STI(size, frameCount);
 	//sti->printColMatrix();
-	sti->setStiColMatrix(videoFile, size);
+	sti->setStiMatrix(videoFile, size);
 	delete sti;
 	cvWaitKey(0);
 
