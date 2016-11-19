@@ -19,11 +19,15 @@ public:
 	void showRowImage(int enlarge);
 	void createFrameHistogram(Mat image);
 	int chromNormalization(double chrom);
-	void histogramIntersect(Mat previous, Mat current);
+	double histogramIntersect(Mat previous, Mat current);
+	void createStiHistogram(std::string videoName, int size, int frameCount);
+	void printHist(Mat hist);
 
 private: 
 	Mat stiColMat;
 	Mat stiRowMat;
+	Mat stiColHist;
+	Mat stiRowHist;
 	int videoRes;
 	int numFrames;
 };

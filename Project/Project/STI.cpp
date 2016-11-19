@@ -19,6 +19,8 @@ STI::STI(int size, int frames)
 {
 	stiColMat = Mat(size, frames, CV_8UC3);
 	stiRowMat = Mat(frames, size, CV_8UC3); //printed type using function
+	stiColHist = Mat(size, frames, CV_64F);
+	stiRowHist = Mat(frames, size, CV_64F);
 	//side note: this may be confusing as C reverses row and column ordering.
 	videoRes = size;
 	numFrames = frames;
@@ -39,7 +41,6 @@ void STI::setStiMatrix(string videoName, int size)
 	namedWindow("Video", 1);
 	int currentFrame;
 	currentFrame = 0;
-	cout << "CurrentFrame " << currentFrame << endl;
 	int centerCol = size / 2;
 	int centerRow = size / 2;
 	for (;;)
@@ -63,8 +64,6 @@ void STI::setStiMatrix(string videoName, int size)
 	cap.release();
 	showColImage(enlarge);
 	showRowImage(enlarge);
-
-	createFrameHistogram(stiColMat);
 }
 
 void STI::showColImage(int enlarge)
@@ -75,40 +74,45 @@ void STI::showColImage(int enlarge)
 	imshow("StiColMatrix", M);
 }
 
-int STI::chromNormalization(double chrom) {
-	if(chrom >= 0 && chrom < 0.144){
-		return 0;
+void STI::createStiHistogram(string videoName, int size, int frameCount) {
+	//create STI colhist
+	VideoCapture cap(videoName); // open the video file
+	if (!cap.isOpened())  // check if we succeeded
+		FAIL("Could not open video capture.");
+	namedWindow("Video", 1);
+//	createFrameHistogram(stiColMat);
+	int currentFrame = 0;
+	int centerCol = size / 2;
+	int centerRow = size / 2;
+	for (;;)
+	{
+		if (currentFrame == (frameCount - 1))
+			break; //since we are grabbing 2 frames at a time
+		
+		Mat frame;
+		cap >> frame; // get a new frame from video   
+
+		if (!frame.empty())
+		{
+			//resize video to size x size
+			Mat resized;
+			resize(frame, resized, Size(size, size));
+			resized.col(centerCol).copyTo(stiColMat.col(currentFrame));
+			resized.row(centerRow).copyTo(stiRowMat.row(currentFrame));
+			currentFrame++;
+			//imshow("Video", resized);
+		}
+		if (waitKey(10) >= 0) break;
 	}
-	else if (chrom >= 0.144 && chrom < 0.288) {
-		return 1;
-	}
-	else if (chrom >= 0.288 && chrom < 0.432) {
-		return 2;
-	}
-	else if (chrom >= 0.432 && chrom < 0.576) {
-		return 3;
-	}
-	else if (chrom >= 0.576 && chrom < 0.720) {
-		return 4;
-	}
-	else if (chrom >= 0.720 && chrom < 0.864) {
-		return 5;
-	}
-	else if (chrom >= 0.864 && chrom < 1.000) {
-		return 6;
-	}
-	else {
-		throw runtime_error("An invalid value was passed in. Should be between 0 and 1.");
-	}
+	cvDestroyWindow("Video");
+	cap.release();
 }
 
 void STI::createFrameHistogram(Mat image) {
 	Mat hist = Mat(7, 7, CV_64F, double(0)); //create empty histogram 7x7
-	//int hist[7][7] = {0};
 	double rchrom = 0;
 	double gchrom = 0;
 	int i, j;
-	//int runningSum = 0;
 	if (DEBUG)
 		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
 	for (i = 0; i < image.rows; i++) { //make sure that this is correct
@@ -125,39 +129,32 @@ void STI::createFrameHistogram(Mat image) {
 
 			int rHist = chromNormalization(rchrom);
 			int gHist = chromNormalization(gchrom);
-
-			//hist[rHist][gHist] = hist[rHist][gHist] + 1;
 			hist.at<double>(rHist, gHist) = hist.at<double>(rHist, gHist) + 1;
 		}
 	}
-	// Prints out the histogram
-	
-	cout << "Histogram: " << endl;
-	//cout << "Running sum = " << runningSum;
-	for (i = 0; i < hist.rows; i++) {
-		for (j = 0; j < hist.cols; j++) {
+
+	//Normalize hist
+	double pixelSum = 1.0f / (image.rows * image.cols); //equivalent to dividing by pixelNum
+	Mat normalizedHist = pixelSum * hist;
+	if (DEBUG) {
+		cout << "Histogram: " << endl;
+		printHist(hist);
+		cout << "Histogram Normalized: " << endl;
+		printHist(normalizedHist);
+	}
+}
+
+double STI::histogramIntersect(Mat previous, Mat current) {
+	return 0;
+}
+
+void STI::printHist(Mat hist) {
+	for (int i = 0; i < hist.rows; i++) {
+		for (int j = 0; j < hist.cols; j++) {
 			cout << hist.at<double>(i, j) << "   ";
 		}
 		cout << endl;
 	}
-
-	//Normalize hist
-	double pixelSum = 1.0f / (image.rows * image.cols);
-	cout << "PixelSum = " << pixelSum << endl;
-	Mat normalizedHist = pixelSum * hist;
-	
-	cout << "Histogram Normalized: " << endl;
-	//cout << "Running sum = " << runningSum;
-	for (i = 0; i < hist.rows; i++) {
-		for (j = 0; j < hist.cols; j++) {
-			cout << normalizedHist.at<double>(i, j) << "   ";
-		}
-		cout << endl;
-	}
-}
-
-void STI::histogramIntersect(Mat previous, Mat current) {
-
 }
 
 void STI::showRowImage(int enlarge)
@@ -193,5 +190,32 @@ string STI::type2str(int type) {
 	r += (chans + '0');
 
 	return r;
+}
+
+int STI::chromNormalization(double chrom) {
+	if (chrom >= 0 && chrom < 0.144) {
+		return 0;
+	}
+	else if (chrom >= 0.144 && chrom < 0.288) {
+		return 1;
+	}
+	else if (chrom >= 0.288 && chrom < 0.432) {
+		return 2;
+	}
+	else if (chrom >= 0.432 && chrom < 0.576) {
+		return 3;
+	}
+	else if (chrom >= 0.576 && chrom < 0.720) {
+		return 4;
+	}
+	else if (chrom >= 0.720 && chrom < 0.864) {
+		return 5;
+	}
+	else if (chrom >= 0.864 && chrom < 1.000) {
+		return 6;
+	}
+	else {
+		throw runtime_error("An invalid value was passed in. Should be between 0 and 1.");
+	}
 }
 
