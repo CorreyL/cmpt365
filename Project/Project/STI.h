@@ -17,16 +17,9 @@ public:
 	std::string type2str(int type);
 	void showColImage(int enlarge);
 	void showRowImage(int enlarge);
-	void createFrameHistogram(Mat image);
-<<<<<<< HEAD
 	int chromNormalization(float chrom);
 	void makeHistogramSTI(std::string videoName, int size, int frameCount);
-=======
-	int chromNormalization(double chrom);
-	double histogramIntersect(Mat previous, Mat current);
-	void createStiHistogram(std::string videoName, int size, int frameCount);
 	void printHist(Mat hist);
->>>>>>> 88ad8909ff653ac7f1596c6654e43cac35ea5ffa
 
 private: 
 	Mat stiColMat;

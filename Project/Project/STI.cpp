@@ -75,7 +75,7 @@ void STI::showColImage(int enlarge)
 }
 
 int STI::chromNormalization(float chrom) {
-	if(chrom >= 0 && chrom < 0.144){
+	if (chrom >= 0 && chrom < 0.144) {
 		return 0;
 	}
 	else if (chrom >= 0.144 && chrom < 0.288) {
@@ -98,45 +98,7 @@ int STI::chromNormalization(float chrom) {
 	}
 	else {
 		throw runtime_error("An invalid value was passed in. Should be between 0 and 1.");
-
-void STI::createFrameHistogram(Mat image) {
-	Mat hist = Mat(7, 7, CV_64F, double(0)); //create empty histogram 7x7
-	double rchrom = 0;
-	double gchrom = 0;
-	int i, j;
-	if (DEBUG)
-		cout << "createHist image input: rows = " << image.rows << " cols = " << image.cols << endl;
-	for (i = 0; i < image.rows; i++) { //make sure that this is correct
-		for (j = 0; j < image.cols; j++) {
-			//default returned is BGR
-			Vec3b intensity = image.at<cv::Vec3b>(i,j);
-			//get R,G,B values from image
-			double r = (double)intensity.val[2];
-			double b = (double)intensity.val[1];
-			double g = (double)intensity.val[0];
-	
-			rchrom = (r / (r + b + g));
-			gchrom = (g / (r + b + g));
-
-			int rHist = chromNormalization(rchrom);
-			int gHist = chromNormalization(gchrom);
-			hist.at<double>(rHist, gHist) = hist.at<double>(rHist, gHist) + 1;
-		}
 	}
-
-	//Normalize hist
-	double pixelSum = 1.0f / (image.rows * image.cols); //equivalent to dividing by pixelNum
-	Mat normalizedHist = pixelSum * hist;
-	if (DEBUG) {
-		cout << "Histogram: " << endl;
-		printHist(hist);
-		cout << "Histogram Normalized: " << endl;
-		printHist(normalizedHist);
-	}
-}
-
-double STI::histogramIntersect(Mat previous, Mat current) {
-	return 0;
 }
 
 void STI::printHist(Mat hist) {
@@ -183,7 +145,7 @@ string STI::type2str(int type) {
 	return r;
 }
 
-void STI::makeHistogramSTI(std::string videoName, int size, int frameCount) {
+void STI::makeHistogramSTI(std::string videoName, int size, int frameCount){
 	VideoCapture cap(videoName);
 	if (!cap.isOpened())  // check if we succeeded
 		throw runtime_error("Could not open video capture.");

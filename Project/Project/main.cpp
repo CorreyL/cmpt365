@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 	STI* sti = new STI(size, frameCount);
 	//sti->printColMatrix();
 	sti->setStiMatrix(videoFile, size);
-	sti->createStiHistogram(videoFile, size, frameCount);
+	sti->makeHistogramSTI(videoFile, size, frameCount);
 	delete sti;
 	cvWaitKey(0);
 
