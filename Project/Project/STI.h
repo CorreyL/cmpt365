@@ -19,6 +19,7 @@ public:
 	void showRowImage(int enlarge);
 	void createFrameHistogram(Mat image);
 	int chromNormalization(float chrom);
+	void makeHistogramSTI(std::string videoName, int size, int frameCount);
 
 private: 
 	Mat stiColMat;
