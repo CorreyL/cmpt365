@@ -16,7 +16,7 @@ using namespace std;
 int main(int argc, char** argv)
 {
 	//set constants for main
-	string videoFile = "VideoFiles/WipeVert1_480p.avi";
+	string videoFile = "VideoFiles/WhiteToBlack.mp4";
 	//string videoFile = "VideoFiles/WhiteToBlack_short.mp4";
 	int size = 32; //set matrix resize to 32
 

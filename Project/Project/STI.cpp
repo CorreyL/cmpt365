@@ -82,7 +82,6 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 
 	//Set up Mat for final image and frames in use
 	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(0));
-	
 	//Mat prevFrameHist, currFrameHist;
 
 	//to hold r andg chrom values
@@ -106,10 +105,26 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 			resize(frame, capCurrFrame, Size(size, size));
 			imshow("PrevFrame", capPrevFrame);
 			imshow("CurrFrame", capCurrFrame);
+			int rowTracker = 0; // Keeps track of which row entry we need to place the value of histCompTotal into
 			for (int i = 0; i < capPrevFrame.cols; i++) {
 				cout << "Enter prev FrameHist" << endl;
 				Mat prevFrameHist = getFrameHist(capPrevFrame.col(i));
 				Mat currFrameHist = getFrameHist(capCurrFrame.col(i));
+				
+				float histCompTotal = 0;
+				for (int x = 0; x < currFrameHist.rows; x++) {
+					for (int y = 0; y < currFrameHist.cols; y++) {
+						histCompTotal = histCompTotal + min(prevFrameHist.at<float>(x, y), currFrameHist.at<float>(x, y));
+					}
+				}
+				finalImage.at<float>(rowTracker, currentFrame) = histCompTotal * 255;
+				imshow("Final Image", finalImage);
+				rowTracker++; // We've placed this column comparison into a row, need to put the next comparison into the next row
+				/*
+				string test;
+				cout << "histCompTotal is: " << histCompTotal << endl;
+				cin >> test;
+				*/
 			}
 			
 			//copy the current frame to the previous frame
@@ -141,8 +156,8 @@ Mat STI::getFrameHist(Mat frame) {
 	//normalize histogram
 	float pixelSum = 1.0f / (frame.rows * frame.cols); //equiv to dividing by pixelsum
 	Mat normalizedHist = pixelSum * hist;
-	//if (DEBUG)
-		//printHist(normalizedHist);
+	// if (DEBUG)
+		// printHist(normalizedHist);
 	return normalizedHist;
 }
 
