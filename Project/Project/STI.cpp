@@ -83,7 +83,7 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	//Set up Mat for final image and frames in use
 	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(0));
 	
-	Mat prevFrameHist, currFrameHist;
+	//Mat prevFrameHist, currFrameHist;
 
 	//to hold r andg chrom values
 	float rchrom, gchrom;
@@ -94,18 +94,24 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	namedWindow("CurrFrame", 1);
 	cap >> capPrevFrame;
 	resize(capPrevFrame, capPrevFrame, Size(size, size));
-	prevFrameHist = getFrameHist(capPrevFrame);
+	
 	for (;;) { //this is done while the video loops
 		Mat frame;
 		cap >> frame;
 		
 		/*if (currentFrame == (frameCount - 1))
 			break; //since we are grabbing 2 frames at once*/
-		if (!capCurrFrame.empty())
+		if (!frame.empty())
 		{
 			resize(frame, capCurrFrame, Size(size, size));
 			imshow("PrevFrame", capPrevFrame);
 			imshow("CurrFrame", capCurrFrame);
+			for (int i = 0; i < capPrevFrame.cols; i++) {
+				cout << "Enter prev FrameHist" << endl;
+				Mat prevFrameHist = getFrameHist(capPrevFrame.col(i));
+				Mat currFrameHist = getFrameHist(capCurrFrame.col(i));
+			}
+			
 			//copy the current frame to the previous frame
 			capCurrFrame.copyTo(capPrevFrame);
 		}
@@ -135,8 +141,8 @@ Mat STI::getFrameHist(Mat frame) {
 	//normalize histogram
 	float pixelSum = 1.0f / (frame.rows * frame.cols); //equiv to dividing by pixelsum
 	Mat normalizedHist = pixelSum * hist;
-	if (DEBUG)
-		printHist(normalizedHist);
+	//if (DEBUG)
+		//printHist(normalizedHist);
 	return normalizedHist;
 }
 
@@ -149,125 +155,7 @@ Mat STI::getChromValues(Vec3b intensity)
 	return rg;
 }
 
-void STI::makeHistogramSTI(std::string videoName, int size, int frameCount){
-	VideoCapture cap(videoName);
-	if (!cap.isOpened())  // check if we succeeded
-		throw runtime_error("Could not open video capture.");
 
-	// Retrieves the first frame;
-	Mat original, capPrevFrame, capCurrFrame;
-	//cap.read(original);
-	cap >> original;
-	// Since the first frame has nothing to be compared to, we store it in capPrevFrame right away
-	resize(original, capPrevFrame, Size(size, size));
-
-	// The STI image we are going to return
-	Mat final_image = Mat(capPrevFrame.cols, frameCount, CV_32F, Scalar(0));
-
-	// Let the rows be the R direction & columns be the G direction for (r,g) = (r,g)/(r+g+b)
-	float prevFrameHist[7][7] = { { 0 } };
-	float currFrameHist[7][7] = { { 0 } };
-
-	float rchrom, gchrom;
-
-	int numberOfFramesProcessed = 1; // Starts at 1 since we already have 1 frame in capPrevFrame
-
-	int finalImageRowTracker = 0; // Used to keep track of where in the STI we need to store the final pixel value in
-	namedWindow("CapPrevFrame", WINDOW_AUTOSIZE);
-	imshow("CapPrevFrame", capPrevFrame);
-	cvWaitKey(20);
-	//make the initial hist
-	for (int i = 0; i < capPrevFrame.rows; i++) {
-		for (int j = 0; j < capPrevFrame.cols; j++) {
-			// Obtaining the Histogram for capPrevFrame
-			Vec3b intensity = capPrevFrame.at<cv::Vec3b>(i, j); // Retrieve the pixel information at the ith and jth entry
-			cout << "Vec3b intensity ( " <<i<<","<<j<<") " << intensity << endl;
-		
-			Mat rg = getChromValues(intensity);
-
-			int rHist = chromNormalization(rg.at<float>(0));
-			int gHist = chromNormalization(rg.at<float>(1));
-
-			prevFrameHist[rHist][gHist] = prevFrameHist[rHist][gHist] + 1;
-		}
-	}
-
-	while (numberOfFramesProcessed < frameCount) {
-		cap.read(original); // Getting a new frame from video
-		resize(original, capCurrFrame, Size(size, size)); // Resizing it and putting it into capCurrFrame
-		
-		for (int i = 0; i < capCurrFrame.rows; i++) {
-			for (int j = 0; j < capCurrFrame.cols; j++) {
-				// Obtaining the Histogram for capPrevFrame
-
-
-				// Obtaining the Histogram for capCurrFrame
-				//Put these in function since they are repetitive.
-				Vec3b intensity = capCurrFrame.at<cv::Vec3b>(i, j); // Retrieve the pixel information at the ith and jth entry
-				float r = (float)intensity.val[2];
-				float b = (float)intensity.val[1];
-				float g = (float)intensity.val[0];
-				Mat rg = divByZero(r, g, b);
-				int rHist = chromNormalization(rg.at<float>(0));
-				int gHist = chromNormalization(rg.at<float>(1));
-				currFrameHist[rHist][gHist] = currFrameHist[rHist][gHist] + 1;
-
-			
-			}
-
-			// The Histogram information for the same column in each frame has been captured, now we need to run a comparison
-			// First we need to normalize prevFrameHist/currFrameHist such that the sum of every element in a histogram == 1
-			float prevSum = 0;
-			float currSum = 0;
-			//no for loop, always going to be how many rows for a col sti, eg. 1 x rows (for a col)
-			int pixelSum = capCurrFrame.rows;
-			// With the sum obtained, we need to divide every entry in prevFrameHist/currFrameHist by their respective sums
-			for (int x = 0; x < 7; x++) {
-				for (int y = 0; y < 7; y++) {
-					prevFrameHist[x][y] = prevFrameHist[x][y] / (float)pixelSum;
-					currFrameHist[x][y] = currFrameHist[x][y] / (float)pixelSum;
-				}
-			}
-			// Now if we were to sum every element of prevFrameHist/currFrameHist, it would equal 1
-
-			// With the sum of prevFrameHist & currFrameHist now equal to one, we run the Histogram Intersection formula
-			float HistIntersectSum = 0;
-			float prevFrameVal = 0;
-			float currFrameVal = 0;
-			for (int x = 0; x < 7; x++) {
-				for (int y = 0; y < 7; y++) {
-					prevFrameVal = prevFrameHist[x][y];
-					currFrameVal = currFrameHist[x][y];
-					HistIntersectSum += MIN(prevFrameHist[x][y], currFrameHist[x][y]);
-				}
-			}
-			// HistIntersectSum should roughly equal 1 if the column current frame and previous frame are from the same scene
-
-			final_image.at<float>(Point(finalImageRowTracker, i)) = HistIntersectSum;
-			
-			// Reset prevFrameHist and currFrame Histograms
-			for (int x = 0; x < 7; x++) {
-				for (int y = 0; y < 7; y++) {
-					prevFrameHist[x][y] = currFrameHist[x][y];
-					currFrameHist[x][y] = 0;
-				}
-			}
-		}
-
-		// Make the current frame the previous frame now
-		capCurrFrame.copyTo(capPrevFrame);
-		finalImageRowTracker++; // This increments it so that in the next iteration, we update the next column of the STI
-		numberOfFramesProcessed++;
-	}
-	if (DEBUG) {
-		cout << "Number of rows = number of columns in video frame, number of cols = frameCount" << endl;
-		cout << "final_image: rows = " << final_image.rows << " ; cols = " << final_image.cols << endl;
-		cout << "Cols in vid fram =  " << capPrevFrame.cols << "; Framecount = " << frameCount << endl;
-	}
-	namedWindow("STIHistImage", WINDOW_AUTOSIZE);
-	imshow("STIHistImage", final_image);
-	cvWaitKey(20);
-}
 
 Mat STI::divByZero(float r, float g, float b) {
 	//Returns a 2 entry Mat for (r,g) value, where rg(0) = rchrom, and rg(1) = gchrom
