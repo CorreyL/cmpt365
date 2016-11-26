@@ -19,7 +19,12 @@ public:
 	void showRowImage(int enlarge);
 	int chromNormalization(float chrom);
 	void makeHistogramSTI(std::string videoName, int size, int frameCount);
+	void createStiHistogram(std::string videoName, int size, int framCount);
 	void printHist(Mat hist);
+
+	Mat getFrameHist(Mat frame);
+	Mat divByZero(float r, float g, float b);
+	Mat getChromValues(Vec3b intensity);
 
 private: 
 	Mat stiColMat;
