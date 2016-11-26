@@ -81,7 +81,7 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	int currentFrame = 0; //set current frame to 0
 
 	//Set up Mat for final image and frames in use
-	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(0));
+	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(255));
 	//Mat prevFrameHist, currFrameHist;
 
 	//to hold r andg chrom values
@@ -117,7 +117,7 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 						histCompTotal = histCompTotal + min(prevFrameHist.at<float>(x, y), currFrameHist.at<float>(x, y));
 					}
 				}
-				finalImage.at<float>(rowTracker, currentFrame) = histCompTotal * 255;
+				finalImage.at<float>(rowTracker, currentFrame) = 255 - (histCompTotal * 255);
 				imshow("Final Image", finalImage);
 				rowTracker++; // We've placed this column comparison into a row, need to put the next comparison into the next row
 				/*
