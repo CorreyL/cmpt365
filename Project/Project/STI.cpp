@@ -84,8 +84,6 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(0));
 	
 	Mat prevFrameHist, currFrameHist;
-	//Mat prevFrameHist = Mat(7, 7, CV_32F, float(0));
-	//Mat currFrameHist = Mat(7, 7, CV_32F, float(0));
 
 	//to hold r andg chrom values
 	float rchrom, gchrom;
@@ -98,12 +96,14 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	resize(capPrevFrame, capPrevFrame, Size(size, size));
 	prevFrameHist = getFrameHist(capPrevFrame);
 	for (;;) { //this is done while the video loops
-		cap >> capCurrFrame;
-		if (currentFrame == (frameCount - 1))
-			break; //since we are grabbing 2 frames at once
+		Mat frame;
+		cap >> frame;
+		
+		/*if (currentFrame == (frameCount - 1))
+			break; //since we are grabbing 2 frames at once*/
 		if (!capCurrFrame.empty())
 		{
-
+			resize(frame, capCurrFrame, Size(size, size));
 			imshow("PrevFrame", capPrevFrame);
 			imshow("CurrFrame", capCurrFrame);
 			//copy the current frame to the previous frame
@@ -132,9 +132,12 @@ Mat STI::getFrameHist(Mat frame) {
 			hist.at<float>(r,g) = hist.at<float>(r,g) + 1.0f;
 		}
 	}
-	//if (DEBUG)
-		//printHist(hist);
-	return hist;
+	//normalize histogram
+	float pixelSum = 1.0f / (frame.rows * frame.cols); //equiv to dividing by pixelsum
+	Mat normalizedHist = pixelSum * hist;
+	if (DEBUG)
+		printHist(normalizedHist);
+	return normalizedHist;
 }
 
 Mat STI::getChromValues(Vec3b intensity) 
