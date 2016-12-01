@@ -13,20 +13,21 @@ class STI
 public:
 	STI(int cols, int rows); //constructor
 	~STI(); //destructor
-	void setStiMatrix(std::string videoName, int size );
+	void setStiMatrix(std::string videoName, int size);
 	std::string type2str(int type);
 	void showColImage(int enlarge);
 	void showRowImage(int enlarge);
 	int chromNormalization(float chrom);
-	void makeHistogramSTI(std::string videoName, int size, int frameCount);
 	void createStiHistogram(std::string videoName, int size, int framCount);
+	void createStiHistogramThres(std::string videoName, int size, int frameCount);
 	void printHist(Mat hist);
+	void displayImage(Mat image, int enlarge, std::string name);
 
 	Mat getFrameHist(Mat frame);
 	Mat divByZero(float r, float g, float b);
 	Mat getChromValues(Vec3b intensity);
 
-private: 
+private:
 	Mat stiColMat;
 	Mat stiRowMat;
 	Mat stiColHist;

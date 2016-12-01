@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 
-#define DEBUG 1
+#define DEBUG 0
 #define FAIL(...) { fprintf(stderr, __VA_ARGS__); exit(EXIT_FAILURE); }
 #define MIN(a,b) ((a<b) ? a : b)
 using namespace cv;
@@ -19,8 +19,8 @@ STI::STI(int size, int frames)
 {
 	stiColMat = Mat(size, frames, CV_8UC3);
 	stiRowMat = Mat(frames, size, CV_8UC3); //printed type using function
-	stiColHist = Mat(size, frames, CV_64F); //MAXX: maybe can rid of these
-	stiRowHist = Mat(frames, size, CV_64F);
+	stiColHist = Mat(size, frames, CV_32F); //MAXX: maybe can rid of these
+	stiRowHist = Mat(size, frames, CV_32F);
 	//side note: this may be confusing as C reverses row and column ordering.
 	videoRes = size;
 	numFrames = frames;
@@ -31,15 +31,16 @@ STI::~STI() {}
 void STI::setStiMatrix(string videoName, int size)
 //sets the number of columns according to frame count
 {
-	int enlarge = 3;
+	int enlarge = 5;
 	VideoCapture cap(videoName); // open the video file
 	if (!cap.isOpened())  // check if we succeeded
 		FAIL("Could not open video capture.");
-	namedWindow("Video", 1);
+	namedWindow("Video", WINDOW_AUTOSIZE);
 	int currentFrame;
 	currentFrame = 0;
 	int centerCol = size / 2;
 	int centerRow = size / 2;
+	bool notify = true;
 	for (;;)
 	{
 		Mat frame;
@@ -50,17 +51,31 @@ void STI::setStiMatrix(string videoName, int size)
 			//resize video to size x size
 			Mat resized;
 			resize(frame, resized, Size(size, size));
-			resized.col(centerCol).copyTo(stiColMat.col(currentFrame));	
+			resized.col(centerCol).copyTo(stiColMat.col(currentFrame));
 			resized.row(centerRow).copyTo(stiRowMat.row(currentFrame));
 			currentFrame++;
-			//imshow("Video", resized);
+			imshow("Video", resized);
 		}
-		if (waitKey(10) >= 0) break;
+		if (waitKey(10) >= 0) {
+			break;
+		}
+		if (notify) {
+			cout << "Have the video selected and press enter to see the STI for Section 1.1" << endl;
+			notify = false;
+		}
 	}
 	cvDestroyWindow("Video");
 	cap.release();
-	//showColImage(enlarge);
-	//showRowImage(enlarge);
+	showColImage(enlarge);
+	showRowImage(enlarge);
+}
+
+void STI::displayImage(Mat image, int enlarge, string name)
+{
+	Mat M;
+	resize(image, M, Size(image.rows * enlarge, image.cols * enlarge));
+	namedWindow(name, WINDOW_AUTOSIZE);
+	imshow(name, M);
 }
 
 void STI::showColImage(int enlarge)
@@ -69,72 +84,76 @@ void STI::showColImage(int enlarge)
 	resize(stiColMat, M, Size(numFrames * enlarge, videoRes * enlarge));
 	namedWindow("StiColMatrix", WINDOW_AUTOSIZE);
 	imshow("StiColMatrix", M);
+	// system("pause");
+	// cvDestroyWindow("StiColMatrix");
 }
 
+void STI::showRowImage(int enlarge)
+{
+	Mat M;
+	resize(stiRowMat, M, Size(numFrames * enlarge, videoRes * enlarge));
+	namedWindow("StiRowMatrix", WINDOW_AUTOSIZE);
+	imshow("StiRowMatrix", M);
+	// system("pause");
+	// cvDestroyWindow("StiRowMatrix");
+}
 
 void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	//Open the video as we did in STI
+	int enlarge = 10;
 	VideoCapture cap(videoName);
 	if (!cap.isOpened())
 		FAIL("Couldnot open video capture.");
-	namedWindow("Video", 1); //Not sure id this is necessary
+	//namedWindow("Video", 1); //Not sure id this is necessary
 	int currentFrame = 0; //set current frame to 0
 
-	//Set up Mat for final image and frames in use
-	Mat finalImage = Mat(size, frameCount, CV_32F, Scalar(255));
-	//Mat prevFrameHist, currFrameHist;
-
+						  //Set up Mat for final image and frames in use
+	Mat finalColImage = Mat(size, frameCount, CV_32F, Scalar(0));
+	Mat finalRowImage = Mat(size, frameCount, CV_32F, Scalar(0));
 	//to hold r andg chrom values
 	float rchrom, gchrom;
 
 	//capture PrevFrame and current Frame
 	Mat capPrevFrame, capCurrFrame;
-	namedWindow("PrevFrame", 1);
-	namedWindow("CurrFrame", 1);
+//	namedWindow("PrevFrame", WINDOW_AUTOSIZE);
+//	namedWindow("CurrFrame", WINDOW_AUTOSIZE);
 	cap >> capPrevFrame;
 	resize(capPrevFrame, capPrevFrame, Size(size, size));
-	
+
 	for (;;) { //this is done while the video loops
 		Mat frame;
 		cap >> frame;
-		
-		/*if (currentFrame == (frameCount - 1))
-			break; //since we are grabbing 2 frames at once*/
+
 		if (!frame.empty())
 		{
 			resize(frame, capCurrFrame, Size(size, size));
-			imshow("PrevFrame", capPrevFrame);
-			imshow("CurrFrame", capCurrFrame);
 			int rowTracker = 0; // Keeps track of which row entry we need to place the value of histCompTotal into
+			//get the column matrix
 			for (int i = 0; i < capPrevFrame.cols; i++) {
-				cout << "Enter prev FrameHist" << endl;
 				Mat prevFrameHist = getFrameHist(capPrevFrame.col(i));
 				Mat currFrameHist = getFrameHist(capCurrFrame.col(i));
-				
+				Mat prevFrameHistRow = getFrameHist(capPrevFrame.row(i));
+				Mat currFrameHistRow = getFrameHist(capCurrFrame.row(i));
 				float histCompTotal = 0;
+				float histCompTotalRow = 0;
 				for (int x = 0; x < currFrameHist.rows; x++) {
 					for (int y = 0; y < currFrameHist.cols; y++) {
-						histCompTotal = histCompTotal + min(prevFrameHist.at<float>(x, y), currFrameHist.at<float>(x, y));
+						histCompTotal = histCompTotal + MIN(prevFrameHist.at<float>(x, y), currFrameHist.at<float>(x, y));
+						histCompTotalRow = histCompTotalRow + MIN(prevFrameHistRow.at<float>(x, y), currFrameHistRow.at<float>(x, y));
 					}
 				}
-				finalImage.at<float>(rowTracker, currentFrame) = 255 - (histCompTotal * 255);
-				imshow("Final Image", finalImage);
-				rowTracker++; // We've placed this column comparison into a row, need to put the next comparison into the next row
-				/*
-				string test;
-				cout << "histCompTotal is: " << histCompTotal << endl;
-				cin >> test;
-				*/
+				finalColImage.at<float>(i, currentFrame) = histCompTotal;
+				finalRowImage.at<float>(i, currentFrame) = histCompTotalRow;
+				
 			}
-			
-			//copy the current frame to the previous frame
 			capCurrFrame.copyTo(capPrevFrame);
 		}
 		currentFrame++;
 		if (waitKey(10) >= 0) break;
 	}
-	cvDestroyWindow("Video");
-	cap.release(); 
+	displayImage(finalColImage, enlarge, "finalColImage");
+	displayImage(finalRowImage, enlarge, "finalRowImage");
+	cap.release();
 }
 
 Mat STI::getFrameHist(Mat frame) {
@@ -150,18 +169,16 @@ Mat STI::getFrameHist(Mat frame) {
 			rg = getChromValues(intensity);
 			int r = chromNormalization(rg.at<float>(0));
 			int g = chromNormalization(rg.at<float>(1));
-			hist.at<float>(r,g) = hist.at<float>(r,g) + 1.0f;
+			hist.at<float>(r, g) = hist.at<float>(r, g) + 1.0f;
 		}
 	}
 	//normalize histogram
 	float pixelSum = 1.0f / (frame.rows * frame.cols); //equiv to dividing by pixelsum
 	Mat normalizedHist = pixelSum * hist;
-	// if (DEBUG)
-		// printHist(normalizedHist);
 	return normalizedHist;
 }
 
-Mat STI::getChromValues(Vec3b intensity) 
+Mat STI::getChromValues(Vec3b intensity)
 {
 	float r = (float)intensity.val[2];
 	float g = (float)intensity.val[1];
@@ -221,14 +238,6 @@ void STI::printHist(Mat hist) {
 		}
 		cout << endl;
 	}
-}
-
-void STI::showRowImage(int enlarge)
-{
-	Mat M;
-	resize(stiRowMat, M, Size(numFrames * enlarge, videoRes * enlarge));
-	namedWindow("StiRowMatrix", WINDOW_AUTOSIZE);
-	imshow("StiRowMatrix", M);
 }
 
 string STI::type2str(int type) {
