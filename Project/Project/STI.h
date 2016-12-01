@@ -22,7 +22,7 @@ public:
 	void createStiHistogramThres(std::string videoName, int size, int frameCount);
 	void printHist(Mat hist);
 	void displayImage(Mat image, int enlarge, std::string name);
-
+	Mat createThresholdHist(Mat image, float thresh);
 	Mat getFrameHist(Mat frame);
 	Mat divByZero(float r, float g, float b);
 	Mat getChromValues(Vec3b intensity);

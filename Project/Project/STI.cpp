@@ -100,7 +100,7 @@ void STI::showRowImage(int enlarge)
 
 void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 	//Open the video as we did in STI
-	int enlarge = 10;
+	int enlarge = 7;
 	VideoCapture cap(videoName);
 	if (!cap.isOpened())
 		FAIL("Couldnot open video capture.");
@@ -115,8 +115,6 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 
 	//capture PrevFrame and current Frame
 	Mat capPrevFrame, capCurrFrame;
-//	namedWindow("PrevFrame", WINDOW_AUTOSIZE);
-//	namedWindow("CurrFrame", WINDOW_AUTOSIZE);
 	cap >> capPrevFrame;
 	resize(capPrevFrame, capPrevFrame, Size(size, size));
 
@@ -127,33 +125,47 @@ void STI::createStiHistogram(std::string videoName, int size, int frameCount) {
 		if (!frame.empty())
 		{
 			resize(frame, capCurrFrame, Size(size, size));
-			int rowTracker = 0; // Keeps track of which row entry we need to place the value of histCompTotal into
-			//get the column matrix
+			//get the column and row histogram
 			for (int i = 0; i < capPrevFrame.cols; i++) {
-				Mat prevFrameHist = getFrameHist(capPrevFrame.col(i));
-				Mat currFrameHist = getFrameHist(capCurrFrame.col(i));
+				Mat prevFrameHistCol = getFrameHist(capPrevFrame.col(i));
+				Mat currFrameHistCol = getFrameHist(capCurrFrame.col(i));
 				Mat prevFrameHistRow = getFrameHist(capPrevFrame.row(i));
 				Mat currFrameHistRow = getFrameHist(capCurrFrame.row(i));
-				float histCompTotal = 0;
+				float histCompTotalCol = 0;
 				float histCompTotalRow = 0;
-				for (int x = 0; x < currFrameHist.rows; x++) {
-					for (int y = 0; y < currFrameHist.cols; y++) {
-						histCompTotal = histCompTotal + MIN(prevFrameHist.at<float>(x, y), currFrameHist.at<float>(x, y));
+				for (int x = 0; x < currFrameHistCol.rows; x++) {
+					for (int y = 0; y < currFrameHistCol.cols; y++) {
+						histCompTotalCol = histCompTotalCol + MIN(prevFrameHistCol.at<float>(x, y), currFrameHistCol.at<float>(x, y));
 						histCompTotalRow = histCompTotalRow + MIN(prevFrameHistRow.at<float>(x, y), currFrameHistRow.at<float>(x, y));
 					}
 				}
-				finalColImage.at<float>(i, currentFrame) = histCompTotal;
+				finalColImage.at<float>(i, currentFrame) = histCompTotalCol;
 				finalRowImage.at<float>(i, currentFrame) = histCompTotalRow;
-				
 			}
 			capCurrFrame.copyTo(capPrevFrame);
 		}
 		currentFrame++;
 		if (waitKey(10) >= 0) break;
 	}
+	float thresh = 0.8f;
+	Mat threshCol = createThresholdHist(finalColImage, thresh);
+	Mat threshRow = createThresholdHist(finalRowImage, thresh);
 	displayImage(finalColImage, enlarge, "finalColImage");
 	displayImage(finalRowImage, enlarge, "finalRowImage");
+	displayImage(threshCol, enlarge, "Threshold Col Image");
+	displayImage(threshRow, enlarge, "Threshold Row Image");
 	cap.release();
+}
+
+Mat STI::createThresholdHist(Mat image, float thresh) {
+	Mat threshImage = Mat(image.rows, image.cols, CV_32F);
+	for (int i = 0; i < image.rows; i++) {
+		for (int j = 0; j < image.cols; j++) {
+			threshImage.at<float>(i, j) = (image.at<float>(i, j) < thresh) ? 0 : 1;
+			//((a<b) ? a : b)
+		}
+	}
+	return threshImage;
 }
 
 Mat STI::getFrameHist(Mat frame) {
